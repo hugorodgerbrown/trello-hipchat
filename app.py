@@ -5,6 +5,7 @@ import json
 from flask import Flask, session
 
 app = Flask(__name__)
+app.secret_key = '\xa35\xba\xf7\xb8\xc7\xbf\x97\xf4\xb5?\x99\xe5G\xc1\xbc\xdc\xb4\xaa\xe2\xc0\x0e\xde\x89'
 
 
 @app.route('/<board>/<int:room>', methods=['GET'])
@@ -40,6 +41,4 @@ def get_favicon():
 if __name__ == '__main__':
     import settings  # import just to validate that settings exist
     # Bind to PORT if defined, otherwise default to 5000.
-    app.debug = True
-    app.secret_key = '\xa35\xba\xf7\xb8\xc7\xbf\x97\xf4\xb5?\x99\xe5G\xc1\xbc\xdc\xb4\xaa\xe2\xc0\x0e\xde\x89'
     app.run()
