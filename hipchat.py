@@ -8,11 +8,6 @@ Dependencies: Requests (http://docs.python-requests.org)
 import requests
 from settings import HIPCHAT_API_TOKEN, HIPCHAT_API_URL
 
-#HIPCHAT_API_TOKEN = 'c1e74d7b2fa299b12fbd4cc4c982b6'
-#HIPCHAT_API_ROOM_ID = '102276'
-#HIPCHAT_API_URL = 'https://api.hipchat.com/v1/rooms/message'
-
-
 def send_message(msg, room_id, color='yellow', notify=False, sender='Trello'):
     """ Sends a message to a HipChat room. """
     payload = {'auth_token': HIPCHAT_API_TOKEN,
