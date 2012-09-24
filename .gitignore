@@ -1,0 +1,4 @@
+venv
+local_settings.py
+*pyc
+*.DS_Store
