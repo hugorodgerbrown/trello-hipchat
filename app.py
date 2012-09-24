@@ -1,36 +1,58 @@
+from sys import exc_info
 import trello
 import hipchat
 import datetime
 import json
 from flask import Flask, session
+from settings import DEBUG
 
 app = Flask(__name__)
 app.secret_key = '\xa35\xba\xf7\xb8\xc7\xbf\x97\xf4\xb5?\x99\xe5G\xc1\xbc\xdc\xb4\xaa\xe2\xc0\x0e\xde\x89'
+app.debug = DEBUG
+
+SESSION_KEY_SINCE = 'since'
 
 
 @app.route('/<board>/<int:room>', methods=['GET'])
 def get_board_comments(board, room):
-    """ Uses the trello lib to fetch latest comments from a board. """
+    """ Uses the trello lib to fetch latest comments from a board.
+
+        This method will fetch all commentCard actions from the Trello board,
+        and post each comment to the HipChat room.
+
+        It stores a timestamp (from the most recent commentCard retreived) in
+        the session, and uses this on subsequent requests to prevent duplicates
+        from being returned. It should therefore only be polled by one fixed IP,
+        otherwise you may get duplicates.
+
+        On the first run, when there is no timestamp, it is set to the current
+        time. NB there are some timezone issues with this - but unfortunately
+        the Trello API doesn't return timestamps with a TZ, so I'm not sure
+        what zone they are in.
+    """
 
     try:
-        if 'since' in session:
-            print 'fetching since from session'
-            since = session['since']
+        if SESSION_KEY_SINCE in session:
+            since = session[SESSION_KEY_SINCE]
         else:
-            print 'setting since to today()'
-            since = datetime.datetime(year=2012, month=1, day=1)
-        print 'since: {0}'.format(since)
+            since = datetime.datetime.today()
+        app.logger.debug('since: {0}'.format(since))
+
+        comments = []
         for comment in trello.yield_latest_comments(board=board, since=since):
-            print str(comment)
             if comment.date > since:
-                print 'updating \'since\' from {0} to {1}'.format(since, comment.date)
                 since = comment.date
-            hipchat.send_message(str(comment), room)
-        session['since'] = since
-        return json.dumps({'since': since.isoformat()})
+            comments.append(str(comment))
+        # hipchat.send_message(str(comment), room)
+        session[SESSION_KEY_SINCE] = since
+        # TODO: this return value isn't much use to anyone. Should probably
+        # return the list of comments?
+        app.logger.debug(comments)
+        return json.dumps({'result': 'success', 'timestamp': since.isoformat()})
+
     except:
-        from sys import exc_info
-        return json.dumps({'exception': str(exc_info()[1])})
+        app.logger.error(str(exc_info()[1]))
+        return json.dumps({'result': 'error', 'exception': str(exc_info()[1])})
 
 
 @app.route('/favicon.ico', methods=['GET'])
@@ -39,6 +61,4 @@ def get_favicon():
     return ''
 
 if __name__ == '__main__':
-    import settings  # import just to validate that settings exist
-    # Bind to PORT if defined, otherwise default to 5000.
     app.run()

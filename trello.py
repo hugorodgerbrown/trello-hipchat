@@ -1,6 +1,11 @@
+import json
 import requests
 import datetime
-from settings import TRELLO_API_KEY, TRELLO_API_TOKEN, TRELLO_API_URL
+from settings import (
+    TRELLO_API_KEY,
+    TRELLO_API_TOKEN,
+    TRELLO_API_URL,
+    TRELLO_PERMALINK_CARD)
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%fz'
 
@@ -32,12 +37,14 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
     if data.status_code == 200:
         # TODO: exception handling in case Trello doesn't like our request
         for comment in data.json:
-            d = datetime.datetime.strptime(comment['date'], DATE_FORMAT)
+            data_sender = comment['memberCreator']
+            data_card = comment['data']['card']
             yield (CardComment(
-                sender=comment['memberCreator']['fullName'],
-                card=comment['data']['card']['name'],
+                sender=data_sender['fullName'],
+                card=data_card['name'],
                 comment=comment['data']['text'],
-                date=d))
+                timestamp=datetime.datetime.strptime(comment['date'], DATE_FORMAT),
+                link=TRELLO_PERMALINK_CARD.format(data_card['id'], data_card['idShort'])))
     else:
         print data.reason
 
@@ -45,15 +52,29 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
 class CardComment():
     """ Entity class modelling a comment on a card. """
 
-    def __init__(self, sender, card, comment, date):
+    def __init__(self, sender, card, comment, timestamp, link):
         self.sender = sender
         self.card = card
         self.comment = comment
-        self.date = date
+        self.timestamp = timestamp
+        self.link = link
 
     def __unicode__(self):
-        return "{0} commented on the card \'{2}\':\n{1}".format(
-            self.sender, self.comment, self.card)
+        return "{0} commented on the <a href=\'{3}\'>card<a> \'{2}\':\n{1}".format(
+            self.sender, self.comment, self.card, self.link)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+    def json(self):
+        """ Returns the CardComment object as JSON.
+
+            This is required because dates are not seraliazable, and so
+            calling __dict__ won't work. <gnashes-teeth>Aargh</gnashes-teeth>
+        """
+        return json.dumps({
+            'sender': self.sender,
+            'card': self.card,
+            'comment': self.comment,  # TODO: should probably escape this
+            'link': self.link,
+            'timestamp': self.timestamp.isoformat()})
