@@ -1,12 +1,13 @@
 import requests
 import datetime
+from settings import TRELLO_API_KEY, TRELLO_API_TOKEN, TRELLO_API_URL
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%fz'
 
 # trello api bits - get your own - https://trello.com/1/appKey/generate
-API_KEY = 'f1cb356eec7ce49e5479615a0e5c5357'
-API_TOKEN = 'aaf606b498d0c5e09d5208334ae66121da6fffb66b05524b3cd0f254de758016'
-API_URL_ACTIONS = 'https://trello.com/1/boards/{0}/actions'
+# API_KEY = 'f1cb356eec7ce49e5479615a0e5c5357'
+# API_TOKEN = 'aaf606b498d0c5e09d5208334ae66121da6fffb66b05524b3cd0f254de758016'
+# API_URL_ACTIONS = 'https://trello.com/1/boards/{0}/actions'
 
 
 def yield_latest_comments(board, limit=5, page=0, since=None):
@@ -24,13 +25,13 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
         Probably.
     """
     params = {
-        'key': API_KEY,
-        'token': API_TOKEN,
+        'key': TRELLO_API_KEY,
+        'token': TRELLO_API_TOKEN,
         'filter': 'commentCard',
         'page': page,
         'limit': limit,
         'since': since.isoformat()}
-    url = API_URL_ACTIONS.format(board)
+    url = TRELLO_API_URL.format(board)
     data = requests.get(url, params=params)
     print data.url
     if data.status_code == 200:
