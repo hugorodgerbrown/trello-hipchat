@@ -36,3 +36,7 @@ I would recommend the following as background reading:
 3. Trello API - https://trello.com/docs/
 4. HipChat API - https://www.hipchat.com/docs/api
 
+# TODO list
+
+* Incorporate additional notifications - e.g. create card, move card
+* Better management / administration (of tokens etc.)
