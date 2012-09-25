@@ -49,15 +49,17 @@ def get_board_comments(board, room):
         for comment in trello.yield_latest_comments(board=board, since=since):
             if comment.timestamp > since:
                 since = comment.timestamp
-            comments.append(str(comment))
-            hipchat.send_message(str(comment), room)
+            comments.append(unicode(comment, 'utf-8'))
+            hipchat.send_message(unicode(comment, 'utf-8'), room)
         r.set(redis_key, since.isoformat())
         # TODO: this return value isn't much use to anyone. Should probably
         # return the list of comments?
         app.logger.debug(comments)
         return json.dumps({'result': 'success', 'timestamp': since.isoformat()})
     except:
-        app.logger.error(str(exc_info()[1]))
+        app.logger.error(str(exc_info()[0]))  # type
+        app.logger.error(str(exc_info()[1]))  # value (message)
+        app.logger.error(str(exc_info()[2]))  # stack trace
         return json.dumps({'result': 'error', 'exception': str(exc_info()[1])})
 
 
