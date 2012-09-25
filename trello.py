@@ -55,7 +55,8 @@ class CardComment():
     def __init__(self, sender, card, comment, timestamp, link):
         self.sender = sender
         self.card = card
-        self.comment = comment
+        # HACK: replaces line breaks with HTML equivalent
+        self.comment = '<br />'.join(comment.split('\n'))
         self.timestamp = timestamp
         self.link = link
 
