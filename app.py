@@ -64,4 +64,4 @@ def get_favicon():
     return ''
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=DEBUG)
