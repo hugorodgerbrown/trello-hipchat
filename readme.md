@@ -26,6 +26,8 @@ on the URL (again, using the HIPCHAT_API_TOKEN from the env vars.)
 
 The only additional complexity is that it uses the latest comment date returned
 as the 'since' API parameter value to prevent duplicate comments coming back.
+The value of the last date is stored in Redis, so that it is available to all
+processes. The key used is {{board}}_{{room}}.
 
 I would recommend the following as background reading:
 

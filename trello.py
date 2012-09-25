@@ -5,9 +5,8 @@ from settings import (
     TRELLO_API_KEY,
     TRELLO_API_TOKEN,
     TRELLO_API_URL,
-    TRELLO_PERMALINK_CARD)
-
-DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%fz'
+    TRELLO_PERMALINK_CARD,
+    DATE_FORMAT)
 
 
 def yield_latest_comments(board, limit=5, page=0, since=None):
