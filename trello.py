@@ -6,7 +6,7 @@ from settings import (
     TRELLO_API_TOKEN,
     TRELLO_API_URL,
     TRELLO_PERMALINK_CARD,
-    DATE_FORMAT)
+    DATE_FORMAT_Z)
 
 
 def yield_latest_comments(board, limit=5, page=0, since=None):
@@ -42,7 +42,7 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
                 sender=data_sender['fullName'],
                 card=data_card['name'],
                 comment=comment['data']['text'],
-                timestamp=datetime.datetime.strptime(comment['date'], DATE_FORMAT),
+                timestamp=datetime.datetime.strptime(comment['date'], DATE_FORMAT_Z),
                 link=TRELLO_PERMALINK_CARD.format(data_card['id'], data_card['idShort'])))
     else:
         print data.reason
