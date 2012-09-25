@@ -37,25 +37,28 @@ def get_board_comments(board, room):
     redis_key = '{0}_{1}'.format(board, room)
     r = redis.from_url(REDIS_URL)
     if r.exists(redis_key):
+        app.logger.debug('Getting since date from redis')
         since = datetime.datetime.strptime(r.get(redis_key), DATE_FORMAT)
     else:
         since = datetime.datetime.now()
 
-#    try:
-    comments = []
-    for comment in trello.yield_latest_comments(board=board, since=since):
-        if comment.date > since:
-            since = comment.date
-        comments.append(str(comment))
-    # hipchat.send_message(str(comment), room)
-    r.set(redis_key, since.isoformat())
-    # TODO: this return value isn't much use to anyone. Should probably
-    # return the list of comments?
-    app.logger.debug(comments)
-    return json.dumps({'result': 'success', 'timestamp': since.isoformat()})
-#    except:
-#        app.logger.error(str(exc_info()[1]))
-#        return json.dumps({'result': 'error', 'exception': str(exc_info()[1])})
+    app.logger.debug('\'since\': {0}'.format(since.isoformat()))
+
+    try:
+        comments = []
+        for comment in trello.yield_latest_comments(board=board, since=since):
+            if comment.timestamp > since:
+                since = comment.timestamp
+            comments.append(str(comment))
+            hipchat.send_message(str(comment), room)
+        r.set(redis_key, since.isoformat())
+        # TODO: this return value isn't much use to anyone. Should probably
+        # return the list of comments?
+        app.logger.debug(comments)
+        return json.dumps({'result': 'success', 'timestamp': since.isoformat()})
+    except:
+        app.logger.error(str(exc_info()[1]))
+        return json.dumps({'result': 'error', 'exception': str(exc_info()[1])})
 
 
 @app.route('/favicon.ico', methods=['GET'])
@@ -64,4 +67,4 @@ def get_favicon():
     return ''
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=DEBUG)

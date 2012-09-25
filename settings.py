@@ -11,6 +11,7 @@ TRELLO_PERMALINK_CARD = 'https://trello.com/card/{0}/{1}'
 REDIS_URL = environ['REDISTOGO_URL']
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+DATE_FORMAT_Z = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 DEBUG = bool(environ.get('FLASK_DEBUG', False) == 'True')
 
