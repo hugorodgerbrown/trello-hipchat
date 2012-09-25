@@ -50,7 +50,7 @@ def get_board_comments(board, room):
             if comment.timestamp > since:
                 since = comment.timestamp
             comments.append(str(comment))
-        # hipchat.send_message(str(comment), room)
+        hipchat.send_message(str(comment), room)
         r.set(redis_key, since.isoformat())
         # TODO: this return value isn't much use to anyone. Should probably
         # return the list of comments?
