@@ -38,12 +38,13 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
         for comment in data.json:
             data_sender = comment['memberCreator']
             data_card = comment['data']['card']
+            data_board = comment['data']['board']
             yield (CardComment(
                 sender=data_sender['fullName'],
                 card=data_card['name'],
                 comment=comment['data']['text'],
                 timestamp=datetime.datetime.strptime(comment['date'], DATE_FORMAT_Z),
-                link=TRELLO_PERMALINK_CARD.format(data_card['id'], data_card['idShort'])))
+                link=TRELLO_PERMALINK_CARD.format(data_board['id'], data_card['idShort'])))
     else:
         print data.reason
 
@@ -59,7 +60,7 @@ class CardComment():
         self.link = link
 
     def __unicode__(self):
-        return "{0} commented on the <a href=\'{3}\'>card<a> \'{2}\':\n{1}".format(
+        return "{0} commented on \'<a href=\'{3}\'>{2}</a>\':<br /><i>{1}</i>".format(
             self.sender, self.comment, self.card, self.link)
 
     def __str__(self):

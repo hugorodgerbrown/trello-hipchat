@@ -8,6 +8,7 @@ Dependencies: Requests (http://docs.python-requests.org)
 import requests
 from settings import HIPCHAT_API_TOKEN, HIPCHAT_API_URL
 
+
 def send_message(msg, room_id, color='yellow', notify=False, sender='Trello'):
     """ Sends a message to a HipChat room. """
     payload = {'auth_token': HIPCHAT_API_TOKEN,
@@ -16,7 +17,7 @@ def send_message(msg, room_id, color='yellow', notify=False, sender='Trello'):
         'from': sender,
         'room_id': room_id,
         'message': msg,
-        'message_format': 'text'
+        'message_format': 'html'
     }
     response = requests.post(HIPCHAT_API_URL, data=payload)
     if response.status_code != 200:
