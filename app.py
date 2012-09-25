@@ -48,7 +48,7 @@ def get_board_comments(board, room):
         comments = []
         for comment in trello.yield_latest_comments(board=board, since=since):
             if comment.date > since:
-                since = comment.date
+                since = comment.timestamp
             comments.append(str(comment))
         # hipchat.send_message(str(comment), room)
         r.set(redis_key, since.isoformat())
