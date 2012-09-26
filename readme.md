@@ -36,6 +36,30 @@ I would recommend the following as background reading:
 3. Trello API - https://trello.com/docs/
 4. HipChat API - https://www.hipchat.com/docs/api
 
+## Heroku setup
+
+In order to deploy this application to Heroku, you will need an account, and an
+application to which you can deploy. Refer to the docs above to read about how
+to deploy to Heroku using Git.
+
+In order to get Redis running on Heroku, I can recommend installing the RedisToGo
+addon:
+
+    $ heroku addons:add redistogo:nano
+
+In order to view the logs more easily you can add any one of a number of logging
+addons - both logentries and loggify work well:
+
+    $ heroku addons:add logentries:tryit
+
+The following config variables will need to be set:
+
+    $ heroku config:add HIPCHAT_API_TOKEN=<your_token_here>
+    $ heroku config:add TRELLO_API_KEY=<your_token_here>
+    $ heroku config:add TRELLO_API_TOKEN=<your_token_here>
+
+Adding RedisToGo will add the `REDISTOGO_URL` config setting.
+
 # TODO list
 
 * Incorporate additional notifications - e.g. create card, move card
