@@ -15,6 +15,17 @@ DATE_FORMAT_Z = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 DEBUG = bool(environ.get('FLASK_DEBUG', False) == 'True')
 
+if DEBUG:
+    print '------------------------------------'
+    print 'HIPCHAT_API_TOKEN = {0}'.format(HIPCHAT_API_TOKEN)
+    print 'HIPCHAT_API_URL = {0}'.format(HIPCHAT_API_URL)
+    print 'TRELLO_API_KEY = {0}'.format(TRELLO_API_KEY)
+    print 'TRELLO_API_TOKEN = {0}'.format(TRELLO_API_TOKEN)
+    print 'TRELLO_API_URL = {0}'.format(TRELLO_API_URL)
+    print 'TRELLO_PERMALINK_CARD = {0}'.format(TRELLO_PERMALINK_CARD)
+    print 'REDIS_URL = {0}'.format(REDIS_URL)
+    print '------------------------------------'
+
 try:
     import local_settings
 except ImportError:

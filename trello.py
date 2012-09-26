@@ -32,7 +32,6 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
         'since': since.isoformat()}
     url = TRELLO_API_URL.format(board)
     data = requests.get(url, params=params)
-    print data.url
     if data.status_code == 200:
         # TODO: exception handling in case Trello doesn't like our request
         for comment in data.json:
@@ -46,7 +45,7 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
                 timestamp=datetime.datetime.strptime(comment['date'], DATE_FORMAT_Z),
                 link=TRELLO_PERMALINK_CARD.format(data_board['id'], data_card['idShort'])))
     else:
-        print data.reason
+        print 'Error retrieving Trello data: {0}'.format(data.reason)
 
 
 class CardComment():
@@ -61,7 +60,7 @@ class CardComment():
         self.link = link
 
     def __unicode__(self):
-        return "{0} commented on \'<a href=\'{3}\'>{2}</a>\':<br /><i>{1}</i>".format(
+        return u"{0} commented on \'<a href=\'{3}\'>{2}</a>\':<br /><i>{1}</i>".format(
             self.sender, self.comment, self.card, self.link)
 
     def __str__(self):

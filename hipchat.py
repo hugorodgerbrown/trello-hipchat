@@ -24,3 +24,4 @@ def send_message(msg, room_id, color='yellow', notify=False, sender='Trello'):
         print response.reason
         print response.url
         print response.text
+        print msg
