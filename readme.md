@@ -60,6 +60,19 @@ The following config variables will need to be set:
 
 Adding RedisToGo will add the `REDISTOGO_URL` config setting.
 
+### How do I get a Trello API user token?
+
+In order to get the relevant access keys and tokens for Trello, you should start by reading the docs: https://trello.com/docs/
+
+However, if you want to shortcut that process, you need two things - your app's developer API key, which is the TRELLO_API_KEY settting, and a
+user access token, which is used to grant access to the relevant board / list / card. 
+
+1. Developer API key - log in to Trello and visit this page - https://trello.com/1/appKey/generate (it's the one marked 'Key')
+2. User access token - Trello supports the ability to generate keys for read or read/write, and with varying expiration periods. The app only requires read-only
+access, for which you can use the following URL: https://trello.com/1/authorize?key=<TRELLO\_API\_KEY>&name=trello-hipchat&expiration=never&response_type=token&scope=read
+
+The user (you, in this case) will be prompted to log in (if they are not already) - and once they've done that they will see a plain text page that includes the token. 
+
 # TODO list
 
 * Incorporate additional notifications - e.g. create card, move card
