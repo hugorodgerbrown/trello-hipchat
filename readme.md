@@ -73,7 +73,13 @@ access, for which you can use the following URL: https://trello.com/1/authorize?
 
 The user (you, in this case) will be prompted to log in (if they are not already) - and once they've done that they will see a plain text page that includes the token. 
 
+[UPDATE, 05-Nov-2012]: this now supports the following events:
+
+* createCard 
+* commentCard
+* updateCard - only move between lists.
+
 # TODO list
 
-* Incorporate additional notifications - e.g. create card, move card
 * Better management / administration (of tokens etc.)
+* Custom formatting of messages
