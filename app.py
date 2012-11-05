@@ -1,5 +1,4 @@
 from sys import exc_info
-import traceback
 import trello
 import hipchat
 import datetime
@@ -38,26 +37,27 @@ def get_board_comments(board, room):
     redis_key = '{0}_{1}'.format(board, room)
     r = redis.from_url(REDIS_URL)
     if 'test' in request.args:
-        app.logger.debug('In debug mode, setting \'since\' date to 2012-01-01')
         since = datetime.datetime.strptime('2012-01-01T00:00:00.000', DATE_FORMAT)
     elif r.exists(redis_key):
-        app.logger.debug('Getting \'since\' date from redis')
         since = datetime.datetime.strptime(r.get(redis_key), DATE_FORMAT)
     else:
-        app.logger.debug('Setting \'since\' date to \'now()\'')
         since = datetime.datetime.now()
 
-    app.logger.debug('\'since\': {0}'.format(since.isoformat()))
+    app.logger.debug("Processing request: board={0}, room={1}, "
+        "since={1}]".format(board, room, since.isoformat()))
 
     try:
-        comments = []
-        for comment in trello.yield_latest_comments(board=board, since=since):
-            if comment.timestamp > since:
-                since = comment.timestamp
-            hipchat.send_message(str(comment), room)
+        count = 0
+        for comment, timestamp in trello.yield_actions(board=board, since=since):
+            count += 1
+            if timestamp > since:
+                since = timestamp
+            if 'no-publish' not in request.args:
+                hipchat.send_message(str(comment), room)
         r.set(redis_key, since.isoformat())
-        # TODO: this return value isn't much use to anyone. Should probably return the list of comments?
-        return json.dumps({'result': 'success', 'timestamp': since.isoformat()})
+        return json.dumps({'result': 'success',
+            'timestamp': since.isoformat(),
+            'actions': count})
     except:
         app.logger.error(repr(exc_info()[0]))  # type
         app.logger.error(repr(exc_info()[1]))  # value (message)

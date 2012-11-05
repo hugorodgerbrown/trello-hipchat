@@ -1,15 +1,64 @@
-import json
 import requests
 import datetime
-from settings import (
-    TRELLO_API_KEY,
-    TRELLO_API_TOKEN,
-    TRELLO_API_URL,
-    TRELLO_PERMALINK_CARD,
-    DATE_FORMAT_Z)
+from settings import (TRELLO_API_KEY, TRELLO_API_TOKEN, DATE_FORMAT_Z)
+import logging
+
+TRELLO_API_URL = 'https://trello.com/1/boards/{0}/actions'
+TRELLO_PERMALINK_CARD = 'https://trello.com/card/{0}/{1}'
 
 
-def yield_latest_comments(board, limit=5, page=0, since=None):
+def parse_trello_action(action):
+    """ Parses out a HipChat message from an action.
+
+        Currently supported actions are commentCard, createCard & updateCard.
+    """
+    if action['type'] == 'createCard':
+        return ("{member} created a new card on <i>{board} / {list}</i> "
+            "called <b>{card}</b> (<a href='{link}'>link</a>)".format(
+                member=action['memberCreator']['fullName'],
+                board=action['data']['board']['name'],
+                list=action['data']['list']['name'],
+                card=action['data']['card']['name'],
+                link=get_card_permalink(action['data'])))
+
+    elif action['type'] == 'updateCard':
+        # we are currently only processing cards that move between lists
+        # use existence of data.listBefore and data.listAfter to recognise
+        try:
+            return("{member} moved card <b>{card}</b> from <i>{list_before}</i> to <i>{list_after}</i> on <i>{board}</i> (<a href='{link}'>link</a>)".format(
+                    card=action['data']['card']['name'],
+                    list_before=action['data']['listBefore']['name'],
+                    list_after=action['data']['listAfter']['name'],
+                    member=action['memberCreator']['fullName'],
+                    board=action['data']['board']['name'],
+                    link=get_card_permalink(action['data'])))
+        except KeyError as ex:
+            logging.warning('updateCard action is not a list movement.')
+            logging.error(ex)
+
+    elif action['type'] == 'commentCard':
+        return ("{member} commented on card <b>{card}</b> on board <i>{board}</i> (<a href='{link}'>link</a>): <i>{comment}</i>".format(
+                member=action['memberCreator']['fullName'],
+                card=action['data']['card']['name'],
+                board=action['data']['board']['name'],
+                comment=action['data']['text'],
+                link=get_card_permalink(action['data'])))
+
+    else:
+        logging.debug('Unexpected action type: {0}'.format(action['type']))
+
+
+def get_card_permalink(data):
+    """ Return the card permalink as parsed out from the ['data'] node of the
+        returned JSON.
+    """
+    return TRELLO_PERMALINK_CARD.format(
+        data['board']['id'],
+        data['card']['idShort']
+    )
+
+
+def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,commentCard,createCard'):
     """ Fetch the latest Trello comments from a board.
 
         :param board: the id of the board to fetch comments from
@@ -26,55 +75,16 @@ def yield_latest_comments(board, limit=5, page=0, since=None):
     params = {
         'key': TRELLO_API_KEY,
         'token': TRELLO_API_TOKEN,
-        'filter': 'commentCard',
+        'filter': filter,
         'page': page,
         'limit': limit,
         'since': since.isoformat()}
     url = TRELLO_API_URL.format(board)
     data = requests.get(url, params=params)
     if data.status_code == 200:
-        # TODO: exception handling in case Trello doesn't like our request
-        for comment in data.json:
-            data_sender = comment['memberCreator']
-            data_card = comment['data']['card']
-            data_board = comment['data']['board']
-            yield (CardComment(
-                sender=data_sender['fullName'],
-                card=data_card['name'],
-                comment=comment['data']['text'],
-                timestamp=datetime.datetime.strptime(comment['date'], DATE_FORMAT_Z),
-                link=TRELLO_PERMALINK_CARD.format(data_board['id'], data_card['idShort'])))
+        for action in data.json:
+            message = parse_trello_action(action)
+            timestamp = datetime.datetime.strptime(action['date'], DATE_FORMAT_Z)
+            yield message, timestamp
     else:
-        print 'Error retrieving Trello data: {0}'.format(data.reason)
-
-
-class CardComment():
-    """ Entity class modelling a comment on a card. """
-
-    def __init__(self, sender, card, comment, timestamp, link):
-        self.sender = sender
-        self.card = card
-        # HACK: replaces line breaks with HTML equivalent
-        self.comment = '<br />'.join(comment.split('\n'))
-        self.timestamp = timestamp
-        self.link = link
-
-    def __unicode__(self):
-        return u"{0} commented on \'<a href=\'{3}\'>{2}</a>\':<br /><i>{1}</i>".format(
-            self.sender, self.comment, self.card, self.link)
-
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def json(self):
-        """ Returns the CardComment object as JSON.
-
-            This is required because dates are not seraliazable, and so
-            calling __dict__ won't work. <gnashes-teeth>Aargh</gnashes-teeth>
-        """
-        return json.dumps({
-            'sender': self.sender,
-            'card': self.card,
-            'comment': self.comment,  # TODO: should probably escape this
-            'link': self.link,
-            'timestamp': self.timestamp.isoformat()})
+        logging.error('Error retrieving Trello data: {0}'.format(data.reason))

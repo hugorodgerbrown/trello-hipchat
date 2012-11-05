@@ -6,7 +6,9 @@ The tokens can be set at https://{{your-account}}.hipchat.com/admin/api
 Dependencies: Requests (http://docs.python-requests.org)
 """
 import requests
-from settings import HIPCHAT_API_TOKEN, HIPCHAT_API_URL
+from settings import HIPCHAT_API_TOKEN
+
+HIPCHAT_API_URL = 'https://api.hipchat.com/v1/rooms/message'
 
 
 def send_message(msg, room_id, color='yellow', notify=False, sender='Trello'):

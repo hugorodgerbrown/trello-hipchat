@@ -1,12 +1,9 @@
 from os import environ
 
 HIPCHAT_API_TOKEN = environ['HIPCHAT_API_TOKEN']
-HIPCHAT_API_URL = 'https://api.hipchat.com/v1/rooms/message'
 
 TRELLO_API_KEY = environ['TRELLO_API_KEY']
 TRELLO_API_TOKEN = environ['TRELLO_API_TOKEN']
-TRELLO_API_URL = 'https://trello.com/1/boards/{0}/actions'
-TRELLO_PERMALINK_CARD = 'https://trello.com/card/{0}/{1}'
 
 REDIS_URL = environ['REDISTOGO_URL']
 
@@ -18,11 +15,8 @@ DEBUG = bool(environ.get('FLASK_DEBUG', False) == 'True')
 if DEBUG:
     print '------------------------------------'
     print 'HIPCHAT_API_TOKEN = {0}'.format(HIPCHAT_API_TOKEN)
-    print 'HIPCHAT_API_URL = {0}'.format(HIPCHAT_API_URL)
     print 'TRELLO_API_KEY = {0}'.format(TRELLO_API_KEY)
     print 'TRELLO_API_TOKEN = {0}'.format(TRELLO_API_TOKEN)
-    print 'TRELLO_API_URL = {0}'.format(TRELLO_API_URL)
-    print 'TRELLO_PERMALINK_CARD = {0}'.format(TRELLO_PERMALINK_CARD)
     print 'REDIS_URL = {0}'.format(REDIS_URL)
     print '------------------------------------'
 
