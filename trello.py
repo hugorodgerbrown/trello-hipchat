@@ -24,17 +24,15 @@ def parse_trello_action(action):
     elif action['type'] == 'updateCard':
         # we are currently only processing cards that move between lists
         # use existence of data.listBefore and data.listAfter to recognise
-        try:
-            return("{member} moved card <b>{card}</b> from <i>{list_before}</i> to <i>{list_after}</i> on <i>{board}</i> (<a href='{link}'>link</a>)".format(
-                    card=action['data']['card']['name'],
-                    list_before=action['data']['listBefore']['name'],
-                    list_after=action['data']['listAfter']['name'],
-                    member=action['memberCreator']['fullName'],
-                    board=action['data']['board']['name'],
-                    link=get_card_permalink(action['data'])))
-        except KeyError as ex:
-            logging.warning('updateCard action is not a list movement.')
-            logging.error(ex)
+        # do not attempt to catch error here - let it bubble up and get caught
+        # in the calling function.
+        return("{member} moved card <b>{card}</b> from <i>{list_before}</i> to <i>{list_after}</i> on <i>{board}</i> (<a href='{link}'>link</a>)".format(
+                card=action['data']['card']['name'],
+                list_before=action['data']['listBefore']['name'],
+                list_after=action['data']['listAfter']['name'],
+                member=action['memberCreator']['fullName'],
+                board=action['data']['board']['name'],
+                link=get_card_permalink(action['data'])))
 
     elif action['type'] == 'commentCard':
         return ("{member} commented on card <b>{card}</b> on board <i>{board}</i> (<a href='{link}'>link</a>): <i>{comment}</i>".format(
@@ -83,8 +81,12 @@ def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,comment
     data = requests.get(url, params=params)
     if data.status_code == 200:
         for action in data.json:
-            message = parse_trello_action(action)
-            timestamp = datetime.datetime.strptime(action['date'], DATE_FORMAT_Z)
-            yield message, timestamp
+            try:
+                message = parse_trello_action(action)
+                timestamp = datetime.datetime.strptime(action['date'], DATE_FORMAT_Z)
+                yield message, timestamp
+            except KeyError as ex:
+                logging.error('Unable to parse action: {0}'.format(action))
+                logging.error('Error thrown: {0}'.format(ex))
     else:
         logging.error('Error retrieving Trello data: {0}'.format(data.reason))
