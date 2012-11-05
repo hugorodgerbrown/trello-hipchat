@@ -8,7 +8,7 @@ from flask import Flask, request
 from settings import DEBUG, REDIS_URL, DATE_FORMAT
 
 app = Flask(__name__)
-app.secret_key = '\xa35\xba\xf7\xb8\xc7\xbf\x97\xf4\xb5?\x99\xe5G\xc1\xbc\xdc\xb4\xaa\xe2\xc0\x0e\xde\x89'
+app.secret_key = 'make_up_something_really_random_here'
 app.debug = DEBUG
 
 SESSION_KEY_SINCE = 'since'
