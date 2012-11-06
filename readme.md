@@ -69,7 +69,8 @@ user access token, which is used to grant access to the relevant board / list / 
 
 1. Developer API key - log in to Trello and visit this page - https://trello.com/1/appKey/generate (it's the one marked 'Key')
 2. User access token - Trello supports the ability to generate keys for read or read/write, and with varying expiration periods. The app only requires read-only
-access, for which you can use the following URL: https://trello.com/1/authorize?key=<TRELLO\_API\_KEY>&name=trello-hipchat&expiration=never&response_type=token&scope=read
+access, for which you can use the following URL: 
+`https://trello.com/1/authorize?key=<TRELLO_API_KEY>&name=trello-hipchat&expiration=never&response_type=token&scope=read`
 
 The user (you, in this case) will be prompted to log in (if they are not already) - and once they've done that they will see a plain text page that includes the token. 
 
