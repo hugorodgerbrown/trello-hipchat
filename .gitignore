@@ -3,3 +3,4 @@ local_settings.py
 *pyc
 *.DS_Store
 pip-delete-this-directory.txt
+*.ignore
