@@ -65,6 +65,15 @@ class TrelloAction(object):
             If no matching template is found, then an UnsupportedTrelloActionError
             is raised. This error contains the contents of the action.
         """
+        if self.type == 'updateCard' and not self.action['data'].get('listBefore'):
+            # we currently only support upates that are related to moving a
+            # card between lists. If this is the case, the 'data' element will
+            # contain both 'listBefore' and 'listAfter' values. If these do not
+            # exist, then this is some other kind of update, and we can't
+            # support it. Raise the UnsupportedTrelloActionError instead.
+            # NB this does not affect other actions - createCard, commentCard...
+            raise UnsupportedTrelloActionError(self)
+
         template_name = '{type}.html'.format(type=self.type)
         try:
             return render_template(template_name, action=self)
