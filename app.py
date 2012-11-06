@@ -44,7 +44,7 @@ def get_board_comments(board, room):
         since = datetime.datetime.now()
 
     app.logger.debug("Processing request: board={0}, room={1}, "
-        "since={1}]".format(board, room, since.isoformat()))
+        "since={2}]".format(board, room, since.isoformat()))
 
     try:
         count = 0
@@ -59,6 +59,8 @@ def get_board_comments(board, room):
             'timestamp': since.isoformat(),
             'actions': count})
     except:
+        # yes, I know a blanket except is a bad idea, but in this situation
+        # it does the job.
         app.logger.error(repr(exc_info()[0]))  # type
         app.logger.error(repr(exc_info()[1]))  # value (message)
         app.logger.error(repr(exc_info()[2]))  # stack trace

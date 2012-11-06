@@ -12,6 +12,11 @@ DATE_FORMAT_Z = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 DEBUG = bool(environ.get('FLASK_DEBUG', False) == 'True')
 
+try:
+    import local_settings
+except ImportError:
+    pass
+
 if DEBUG:
     print '------------------------------------'
     print 'HIPCHAT_API_TOKEN = {0}'.format(HIPCHAT_API_TOKEN)
@@ -19,8 +24,3 @@ if DEBUG:
     print 'TRELLO_API_TOKEN = {0}'.format(TRELLO_API_TOKEN)
     print 'REDIS_URL = {0}'.format(REDIS_URL)
     print '------------------------------------'
-
-try:
-    import local_settings
-except ImportError:
-    pass
