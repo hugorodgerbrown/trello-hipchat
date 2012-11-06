@@ -1,63 +1,121 @@
+import json
 import requests
 import datetime
-from settings import (TRELLO_API_KEY, TRELLO_API_TOKEN, DATE_FORMAT_Z)
 import logging
+from flask import render_template
+from settings import (TRELLO_API_KEY, TRELLO_API_TOKEN, DATE_FORMAT_Z)
+from jinja2.exceptions import TemplateNotFound
 
 TRELLO_API_URL = 'https://trello.com/1/boards/{0}/actions'
 TRELLO_PERMALINK_CARD = 'https://trello.com/card/{0}/{1}'
 
 
-def parse_trello_action(action):
-    """ Parses out a HipChat message from an action.
+class UnsupportedTrelloActionError(Exception):
+    """ Error raised when an action is returned that we cannot parse."""
+    def __init__(self, action):
+        """ Initialise with an instance of the TrelloAction that caused the problem."""
+        self.action = action
 
-        Currently supported actions are commentCard, createCard & updateCard.
-    """
-    if action['type'] == 'createCard':
-        return ("{member} created a new card on <i>{board} / {list}</i> "
-            "called <b>{card}</b> (<a href='{link}'>link</a>)".format(
-                member=action['memberCreator']['fullName'],
-                board=action['data']['board']['name'],
-                list=action['data']['list']['name'],
-                card=action['data']['card']['name'],
-                link=get_card_permalink(action['data'])))
+    def __unicode__(self):
+        return u"No matching template found for action: {0}".format(self.action)
 
-    elif action['type'] == 'updateCard':
-        # we are currently only processing cards that move between lists
-        # use existence of data.listBefore and data.listAfter to recognise
-        # do not attempt to catch error here - let it bubble up and get caught
-        # in the calling function.
-        return("{member} moved card <b>{card}</b> from <i>{list_before}</i> to <i>{list_after}</i> on <i>{board}</i> (<a href='{link}'>link</a>)".format(
-                card=action['data']['card']['name'],
-                list_before=action['data']['listBefore']['name'],
-                list_after=action['data']['listAfter']['name'],
-                member=action['memberCreator']['fullName'],
-                board=action['data']['board']['name'],
-                link=get_card_permalink(action['data'])))
-
-    elif action['type'] == 'commentCard':
-        return ("{member} commented on card <b>{card}</b> on board <i>{board}</i> (<a href='{link}'>link</a>): <i>{comment}</i>".format(
-                member=action['memberCreator']['fullName'],
-                card=action['data']['card']['name'],
-                board=action['data']['board']['name'],
-                comment=action['data']['text'],
-                link=get_card_permalink(action['data'])))
-
-    else:
-        logging.debug('Unexpected action type: {0}'.format(action['type']))
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
-def get_card_permalink(data):
-    """ Return the card permalink as parsed out from the ['data'] node of the
-        returned JSON.
-    """
-    return TRELLO_PERMALINK_CARD.format(
-        data['board']['id'],
-        data['card']['idShort']
-    )
+class TrelloAction(object):
+    """ Provide access to Trello API response 'action' JSON properties."""
+
+    def __init__(self, action):
+        self.action = action
+        self.action_data = TrelloActionData(action['data'])
+
+    def __unicode__(self):
+        return json.dumps(self.action)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    @property
+    def type(self):
+        return self.action['type']
+
+    @property
+    def member_fullname(self):
+        return self.action['memberCreator']['fullName']
+
+    @property
+    def data(self):
+        return self.action_data
+
+    @property
+    def timestamp(self):
+        return datetime.datetime.strptime(self.action['date'], DATE_FORMAT_Z)
+
+    def get_hipchat_message(self):
+        """ Parses out a HipChat message from an action.
+
+            This method renders an HTML template for the action. Templates
+            are stored in the /templates directory, and are named after the
+            action type (commentCard, updateCard, etc.) This does replace a
+            restriction in that each action has only one template, so if you
+            want to use multiple message types for a single action, you'll
+            need to work around this.
+
+            If no matching template is found, then an UnsupportedTrelloActionError
+            is raised. This error contains the contents of the action.
+        """
+        template_name = '{type}.html'.format(type=self.type)
+        try:
+            return render_template(template_name, action=self)
+        except TemplateNotFound:
+            raise UnsupportedTrelloActionError(self)
+
+
+class TrelloActionData(object):
+    """ Provide access to action data."""
+
+    def __init__(self, data):
+        """ Initialises the class with the JSON data response from Trello.
+
+            :param data: the 'action' from a Trello Response.
+        """
+        self.data = data
+
+    @property
+    def board_name(self):
+        return self.data['board']['name']
+
+    @property
+    def card_name(self):
+        return self.data['card']['name']
+
+    @property
+    def list_name(self):
+        return self.data['list']['name']
+
+    @property
+    def list_before_name(self):
+        return self.data['listBefore']['name']
+
+    @property
+    def list_after_name(self):
+        return self.data['listAfter']['name']
+
+    @property
+    def text(self):
+        return self.data['text']
+
+    @property
+    def card_permalink(self):
+        return TRELLO_PERMALINK_CARD.format(
+            self.data['board']['id'],
+            self.data['card']['idShort']
+        )
 
 
 def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,commentCard,createCard'):
-    """ Fetch the latest Trello comments from a board.
+    """ Call Trello API and yield a HipChat-friendly message for each.
 
         :param board: the id of the board to fetch comments from
         :limit (opt): the number of comments to return - defaults to 5
@@ -67,8 +125,7 @@ def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,comment
         This uses the `since=lastView` request parameter
         to bring back only the latest comments - but bear
         in mind that this will reset each time the program
-        is run, so will need a timestamp check as well.
-        Probably.
+        is run, so will need a timestamp check as well. Probably.
     """
     params = {
         'key': TRELLO_API_KEY,
@@ -76,15 +133,15 @@ def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,comment
         'filter': filter,
         'page': page,
         'limit': limit,
-        'since': since.isoformat()}
+        'since': since.isoformat()
+    }
     url = TRELLO_API_URL.format(board)
     data = requests.get(url, params=params)
     if data.status_code == 200:
-        for action in data.json:
+        for action_data in data.json:
+            action = TrelloAction(action_data)
             try:
-                message = parse_trello_action(action)
-                timestamp = datetime.datetime.strptime(action['date'], DATE_FORMAT_Z)
-                yield message, timestamp
+                yield action.get_hipchat_message(), action.timestamp
             except KeyError as ex:
                 logging.error('Unable to parse action: {0}'.format(action))
                 logging.error('Error thrown: {0}'.format(ex))
