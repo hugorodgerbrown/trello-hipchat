@@ -3,6 +3,8 @@
 This is a (very) simple web application that picks up notifications from a 
 Trello board, and posts an appropriate message to a HipChat room.
 
+![screenshot](https://lh6.googleusercontent.com/h3GtPFR4PWyXmvwsb8dwaY_icSYggOULPu-M1WPnvhNPjZeNYAMZRCSaI2yX4bu0F-Z3bFZ6i8I)
+
 It currently supports the following 'actions' as defined by the Trello API:
 
 * createCard - fired when a new card is created
