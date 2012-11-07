@@ -122,6 +122,13 @@ class TrelloActionData(object):
             self.data['card']['idShort']
         )
 
+    @property
+    def check_item_name(self):
+        return self.data['checkItem']['name']
+
+    def check_item_state(self):
+        return self.data['checkItem']['state']
+
 
 def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,commentCard,createCard'):
     """ Call Trello API and yield a HipChat-friendly message for each.

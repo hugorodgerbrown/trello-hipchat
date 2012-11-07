@@ -12,6 +12,7 @@ It currently supports the following 'actions' as defined by the Trello API:
 only picks up card movements from one list to another - other updates are
 ignored
 * commentCard - fired when someone adds a comment to a card
+* updateCheckItemStateOnCard - fired when someone checks / unchecks a checklist item
 
 The application has only one endpoint, set up to respond to the following url:
 
