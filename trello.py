@@ -158,8 +158,12 @@ def yield_actions(board, limit=5, page=0, since=None, filter='updateCard,comment
             action = TrelloAction(action_data)
             try:
                 yield action.get_hipchat_message(), action.timestamp
+            except UnsupportedTrelloActionError as ex:
+                logging.error('Unsupported action:\n{0}'.format(ex))
+                continue
             except KeyError as ex:
                 logging.error('Unable to parse action: {0}'.format(action))
                 logging.error('Error thrown: {0}'.format(ex))
+                continue
     else:
         logging.error('Error retrieving Trello data: {0}'.format(data.reason))
