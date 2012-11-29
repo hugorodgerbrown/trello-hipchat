@@ -51,10 +51,9 @@ def get_board_comments(board, room):
         for comment, timestamp in trello.yield_actions(board=board, since=since):
             count += 1
             if timestamp > since:
-                since = timestamp
+                r.set(redis_key, timestamp.isoformat())
             if 'no-publish' not in request.args:
                 hipchat.send_message(str(comment), room)
-        r.set(redis_key, since.isoformat())
         return json.dumps({'result': 'success',
             'timestamp': since.isoformat(),
             'actions': count})
