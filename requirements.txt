@@ -4,4 +4,4 @@ Werkzeug==0.8.3
 dj-database-url==0.2.1
 gunicorn==0.14.6
 redis==2.6.2
-requests==0.14.0
+requests==1.1.0
