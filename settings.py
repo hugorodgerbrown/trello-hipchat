@@ -10,7 +10,7 @@ REDIS_URL = environ['REDISTOGO_URL']
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 DATE_FORMAT_Z = '%Y-%m-%dT%H:%M:%S.%fZ'
 
-DEBUG = bool(environ.get('FLASK_DEBUG', False) == 'True')
+DEBUG = bool(environ.get('FLASK_DEBUG', "False").lower() == 'true')
 
 try:
     import local_settings
