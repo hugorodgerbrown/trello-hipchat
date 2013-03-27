@@ -16,7 +16,7 @@ TRELLO_PERMALINK_CARD = 'https://trello.com/card/{0}/{1}'
 class UnsupportedTrelloActionError(Exception):
     """Error raised when an action is returned that we cannot parse."""
     def __init__(self, action):
-        """ Initialise with an instance of the TrelloAction that caused the problem."""
+        """Initialise with an instance of the TrelloAction that caused the problem."""
         self.action = action
 
     def __unicode__(self):
@@ -28,7 +28,6 @@ class UnsupportedTrelloActionError(Exception):
 
 class TrelloAction(object):
     """Provide access to Trello API response 'action' JSON properties."""
-
     def __init__(self, action):
         self.action = action
         self.action_data = TrelloActionData(action['data'])
@@ -91,7 +90,6 @@ class TrelloAction(object):
 
 class TrelloActionData(object):
     """Provide simple attribute access to action data."""
-
     def __init__(self, data):
         """
         Initialises the class with the JSON data response from Trello.

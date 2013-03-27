@@ -20,7 +20,7 @@ from settings import DEBUG, REDIS_URL, DATE_FORMAT
 from api import trello, hipchat
 
 app = Flask(__name__)
-app.secret_key = 'make_up_something_really_random_here'
+# app.secret_key = 'make_up_something_really_random_here'
 app.debug = DEBUG
 
 SESSION_KEY_SINCE = 'since'
@@ -73,7 +73,7 @@ def get_board_comments(board, room):
 
     app.logger.debug(
         "Processing request: board={0}, room={1}, "
-        "since={2}]".format(board, room, since.isoformat()))
+        "since={2}".format(board, room, since.isoformat()))
 
     try:
         actions = trello.get_actions(board=board, since=since)
@@ -102,7 +102,7 @@ def get_board_comments(board, room):
 
 @app.route('/favicon.ico', methods=['GET'])
 def get_favicon():
-    """ Swallows the Chrome favicon request. """
+    """Swallow the Chrome favicon request."""
     return ''
 
 if __name__ == '__main__':
