@@ -173,9 +173,8 @@ def get_actions(board, limit=5, page=0, since=None, filter='updateCard,commentCa
         for action_data in data.json():
             action = TrelloAction(action_data)
             try:
-                new_action = (action.get_hipchat_message(), action.timestamp)
-                actions.append(new_action)
-                # yield new_action
+                logging.debug(action.get_hipchat_message())
+                actions.append(action)
             except UnsupportedTrelloActionError as ex:
                 logging.info('Unsupported action:\n{0}'.format(ex))
                 continue

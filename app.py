@@ -77,7 +77,9 @@ def get_board_comments(board, room):
 
     try:
         actions = trello.get_actions(board=board, since=since)
-        for comment, timestamp in actions:
+        for action in actions:
+            timestamp = action.timestamp
+            comment = action.get_hipchat_message()
             if timestamp > since:
                 app.logger.debug(
                     "Resetting timestamp for redis key '%s' to %s"
@@ -85,7 +87,13 @@ def get_board_comments(board, room):
                 r.set(redis_key, timestamp.isoformat())
             if 'no-publish' not in request.args:
                 app.logger.debug("Publishing update to HipChat: %s" % comment)
-                response = hipchat.send_message(str(comment), room)
+                if action.type == 'createCard':
+                    colour = 'purple'
+                elif action.type == 'commentCard':
+                    colour = 'green'
+                else:
+                    colour = 'yellow'
+                response = hipchat.send_message(str(comment), room, color=colour)
                 app.logger.debug("HipChat API response: %s" % response.status_code)
                 if response.status_code != 200:
                     app.logger.debug(response.text)
